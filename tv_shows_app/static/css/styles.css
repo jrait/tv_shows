@@ -7,3 +7,7 @@
 p{
     height: 100px;
 }
+
+.errors{
+    border-radius: 10px;
+}

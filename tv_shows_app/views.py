@@ -1,4 +1,5 @@
 from django.shortcuts import render,redirect
+from django.contrib import messages
 
 from tv_shows_app.models import Shows 
 
@@ -17,8 +18,14 @@ def new(request):
     return render(request,'new.html')
 
 def create(request):
-    Shows.objects.create(title = request.POST['title'],network = request.POST['network'],release_date = request.POST['release_date'],desc = request.POST['desc'])
-    return redirect('/shows')
+    errors = Shows.objects.validator(request.POST)
+    if len(errors)>0:
+        for key, value in errors.items():
+            messages.error(request,value)
+        return redirect('/shows/new')
+    else:
+        Shows.objects.create(title = request.POST['title'],network = request.POST['network'],release_date = request.POST['release_date'],desc = request.POST['desc'])
+        return redirect('/shows')
 
 def delete(request,delete_id):
     show = Shows.objects.get(id = delete_id)
@@ -39,10 +46,16 @@ def edit(request,edit_id):
     return render(request,'edit.html',context)
 
 def edit_show(request,edit_id):
-    show = Shows.objects.get(id = edit_id)
-    show.title = request.POST['title']
-    show.nework = request.POST['network']
-    show.release_date = request.POST['release_date']
-    show.desc = request.POST['desc']
-    show.save()
-    return redirect('/shows')
+    errors = Shows.objects.validator(request.POST)
+    if len(errors)>0:
+        for key, value in errors.items():
+            messages.error(request,value)
+        return redirect(f'/shows/{edit_id}/edit')
+    else:
+        show = Shows.objects.get(id = edit_id)
+        show.title = request.POST['title']
+        show.nework = request.POST['network']
+        show.release_date = request.POST['release_date']
+        show.desc = request.POST['desc']
+        show.save()
+        return redirect(f'/shows/{edit_id}')
